@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <title>Favorite Movies GIFs Library</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300italic,700,700italic">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.5.0/css/font-awesome.min.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/milligram/1.3.0/milligram.css">
+  <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css" integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh" crossorigin="anonymous">
+  <style type="text/css">
+    button,
+    div,
+    form,
+    input {
+      margin: 10px;
+    }
+    
+  </style>
+</head>
+
+<body>
+  <table class="table-sm">
+    <tbody>
+      <tr>
+        <th>Refresh the Page to See a List of Saved Favorite Gifs! </th>
+        </tr>
+      </tbody>
+    </table>
+  <div id="favorites">
+   
+  </div>
+  <div class="container container-fluid">
+    <h1>Favorite Movies GIFs Library</h1>
+
+    <!-- Rendered Buttons will get Dumped Here  -->
+    <div id="buttons-view"></div>
+
+    <form id="movie-form">
+      <label for="movie-input">Find and Add Your Movie Gifs to the Collection!</label>
+      <input type="text" id="movie-input">
+      <br>
+
+      <!-- Button triggers new movie to be added -->
+      <input id="add-movie" type="submit" value="Add a Movie, Yo!">
+    </form>
+
+    <!-- Movies will Get Dumped Here -->
+      <div id="movies-view" class="card"></div>
+ 
+    
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+    
+    <script type="text/javascript">
+      // Initial array of movies
+      var topics = ["pulp+fiction", "kill+bill", "inglourious basterds", "once a upon a time in hollywood"];
+      var favList =[];
+      // displayMovieInfo function re-renders the HTML to display the appropriate content
+      function displayMovieInfo() {
+
+        var topic = $(this).attr("data-name");
+        var queryURL = "https://api.giphy.com/v1/gifs/search?api_key=CtHAwlREBRxi18b8ufenIgFawErzX3FK&q=" + topic + "&limit=10&offset=0&rating=G&lang=en";
+
+        // Creating an AJAX call for the specific movie button being clicked
+        $.ajax({
+          url: queryURL,
+          method: "GET"
+        }).then(function(response) {
+           
+           
+
+          for (var i = 0; i < topics.length; i++) {
+          // Creating a div to hold the movie
+          var movieDiv = $("<div class='movie'>");
+          movieDiv.addClass("card-body");
+          movieDiv.attr ("style", "width: 100%;");
+
+          // Storing the rating data
+          var title = $( "<h5>" ).addClass("card-title").text(response.data[i].title);
+  
+    movieDiv.append(title);
+          // Creating an element to have the rating displayed
+          var rating = $("<p>").text("Rating: " + response.data[i].rating);
+
+          // Displaying the rating
+          movieDiv.append(rating);
+
+          // Storing the gif id
+          var gifID = response.data[i].id;
+
+          // Creating an element to hold the release year
+          var pTwo = $("<p>").addClass("card-text").text("Gif ID: " + gifID);
+          // Displaying the release year
+          movieDiv.append(pTwo);
+
+          var imgURLAnimated = response.data[i].images.fixed_height.url;
+        var imgURLStill = response.data[i].images.fixed_height_still.url;
+        console.log (imgURLAnimated);
+
+          var link = $("<button>");
+            link.attr("href", response.data[i].images.fixed_height.url);
+            link.addClass("btn btn-primary");
+            link.text("Add to Favorite");
+
+
+         movieDiv.append(link);
+          // Retrieving the URL for the image
+     
+          // Creating an element to hold the image
+          var image = $("<img>");
+          
+          //personImage.attr("src", results[i].images.fixed_height.url);
+          image.addClass ("gif card-img-bottom");
+          image.attr("src", imgURLStill);
+          image.attr("data-still",imgURLStill)
+          image.attr("data-state", "still");
+          image.attr("data-animate", imgURLAnimated);
+       
+      
+          // Appending the image
+          movieDiv.append(image);
+          // Putting the entire movie above the previous movies
+          $("#movies-view").prepend(movieDiv);
+          }
+    
+        });
+
+      }
+  
+function animateGif (){
+   var state = $(this).attr("data-state");
+      // If the clicked image's state is still, update its src attribute to what its data-animate value is.
+      // Then, set the image's data-state to animate
+      // Else set src to the data-still value
+      if (state === "still") {
+        $(this).attr("src", $(this).attr("data-animate"));
+        $(this).attr("data-state", "animate");
+      } else {
+        $(this).attr("src", $(this).attr("data-still"));
+        $(this).attr("data-state", "still");
+}};
+
+function addMovieGif (){event.preventDefault();
+        // This line grabs the input from the textbox
+        var movie = $("#movie-input").val().trim();
+
+        // Adding movie from the textbox to our array
+        topics.push(movie);
+
+        // Calling renderButtons which handles the processing of our movie array
+        renderButtons();};
+
+      // Function for displaying movie data
+      function renderButtons() {
+
+        // Deleting the movies prior to adding new movies
+        // (this is necessary otherwise you will have repeat buttons)
+        $("#buttons-view").empty();
+
+        // Looping through the array of movies
+        for (var i = 0; i < topics.length; i++) {
+
+          // Then dynamicaly generating buttons for each movie in the array
+          // This code $("<button>") is all jQuery needs to create the beginning and end tag. (<button></button>)
+          var a = $("<button>");
+          // Adding a class of movie-btn to our button
+          a.addClass("movie-btn");
+          // Adding a data-attribute
+          a.attr("data-name", topics[i]);
+          // Providing the initial button text
+          a.text(topics[i]);
+          // Adding the button to the buttons-view div
+          $("#buttons-view").append(a);
+        }
+      }
+console.log (topics);
+
+
+function saveData(){
+  localStorage.clear();
+ 
+  var input = $(this).attr("href"); 
+  favList.push (input); 
+  console.log (favList)
+  
+  localStorage.setItem("favs", JSON.stringify(favList));
+ var storedValue = JSON.parse(localStorage.getItem("favs"));
+ // $("#favorites").storedValue;
+}
+
+function renderList (){
+  const tasks = JSON.parse(localStorage.getItem('favs'));
+
+
+    $.each(tasks, function(key, value){
+      $('tbody').css("font-weight","bold").append(`<tr>
+      <td class="gif_url"><a href=${tasks[key]}>${tasks[key]}</a></td>
+    </tr>`);
+})
+
+
+
+// tasks.forEach(function(task){
+//   $("#favorites").html(task);
+// console.log (task)
+// })
+// console.log (tasks)
+}
+
+
+
+      // Adding a click event listener to all elements with a class of "movie-btn"
+      $(document).on("click", ".movie-btn", displayMovieInfo);
+      $(document).on("click", "#add-movie",addMovieGif);
+      $(document).on("click", ".gif",animateGif);
+      $(document).on("click", ".btn",saveData);
+      //$("#favorites").html(localStorage.getItem("favs"));
+      // Calling the renderButtons function to display the intial buttons
+      renderButtons();
+      renderList();
+    </script>
+  </div>
+</body>
+
+</html>
